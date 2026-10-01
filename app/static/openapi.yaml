@@ -1,0 +1,307 @@
+﻿openapi: "3.0.3"
+info:
+  title: EVE Healthcare – Diagnostic Bookings API
+  version: "1.0.0"
+  description: |
+    Small backend for booking diagnostic tests with simulated payments and an idempotent webhook.
+    Money is an **integer in paise** (50000 = ₹500.00). Times are UTC ISO-8601.
+    Errors always look like `{"error": {"code": "...", "message": "..."}}`.
+    Lists are paginated: `?page=1&page_size=20` (max 100).
+servers:
+  - url: http://localhost:8000
+    description: Local Docker
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }
+
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token: { type: string }
+        token_type: { type: string }
+        expires_in: { type: integer }
+
+    Test:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        price: { type: integer, description: "Price in paise" }
+
+    Centre:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        location: { type: string }
+        tests:
+          type: array
+          items: { $ref: '#/components/schemas/Test' }
+
+    Booking:
+      type: object
+      properties:
+        id: { type: integer }
+        user_id: { type: integer }
+        centre_id: { type: integer }
+        test_id: { type: integer }
+        appointment_at: { type: string, format: date-time }
+        amount: { type: integer, description: "Price snapshot in paise" }
+        status: { type: string, enum: [PENDING, CONFIRMED, FAILED, CANCELLED] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Payment:
+      type: object
+      properties:
+        id: { type: integer }
+        booking_id: { type: integer }
+        provider_ref: { type: string }
+        amount: { type: integer }
+        status: { type: string, enum: [SUCCESS, FAILED] }
+        created_at: { type: string, format: date-time }
+
+paths:
+  /auth/signup:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string, example: Asha Mehta }
+                email: { type: string, example: asha@example.com }
+                password: { type: string, minLength: 8, example: password123 }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+        '409': { description: Email already taken }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and get JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, example: asha@example.com }
+                password: { type: string, example: password123 }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/TokenResponse' } } } }
+        '401': { description: Invalid credentials }
+
+  /centres:
+    get:
+      tags: [Catalogue]
+      summary: List all centres
+      parameters:
+        - name: location
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 20 }
+      responses:
+        '200': { description: OK }
+    post:
+      tags: [Catalogue]
+      summary: Create a centre (admin only)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, location]
+              properties:
+                name: { type: string }
+                location: { type: string }
+      responses:
+        '201': { description: Created }
+        '403': { description: Forbidden }
+
+  /centres/{id}:
+    get:
+      tags: [Catalogue]
+      summary: Get a single centre
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: OK }
+        '404': { description: Not found }
+
+  /centres/{id}/tests:
+    post:
+      tags: [Catalogue]
+      summary: Add or update a test at a centre (admin only)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, price]
+              properties:
+                name: { type: string }
+                price: { type: integer, description: "In paise" }
+      responses:
+        '201': { description: Created/updated }
+        '403': { description: Forbidden }
+
+  /bookings:
+    post:
+      tags: [Bookings]
+      summary: Create a booking
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [centre_id, test_id, appointment_at]
+              properties:
+                centre_id: { type: integer, example: 1 }
+                test_id: { type: integer, example: 1 }
+                appointment_at: { type: string, format: date-time, example: "2027-01-15T10:30:00Z" }
+      responses:
+        '201': { description: Booking created (PENDING) }
+        '409': { description: Duplicate slot }
+    get:
+      tags: [Bookings]
+      summary: List my bookings
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [PENDING, CONFIRMED, FAILED, CANCELLED] }
+        - name: page
+          in: query
+          schema: { type: integer }
+        - name: page_size
+          in: query
+          schema: { type: integer }
+      responses:
+        '200': { description: OK }
+
+  /bookings/{id}:
+    get:
+      tags: [Bookings]
+      summary: Get a single booking with payments
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: OK }
+        '404': { description: Not found }
+
+  /bookings/{id}/cancel:
+    post:
+      tags: [Bookings]
+      summary: Cancel a booking
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Cancelled }
+        '409': { description: Already cancelled }
+
+  /payments/:
+    post:
+      tags: [Payments]
+      summary: Simulate a payment
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [booking_id]
+              properties:
+                booking_id: { type: integer }
+                simulate: { type: string, enum: [SUCCESS, FAILED], description: "Force outcome (optional)" }
+      responses:
+        '201': { description: Payment result }
+        '409': { description: Invalid booking state }
+
+  /payments/webhook:
+    post:
+      tags: [Payments]
+      summary: Provider webhook (idempotent, HMAC signed)
+      parameters:
+        - name: X-Signature
+          in: header
+          required: true
+          schema: { type: string }
+          description: "Hex HMAC-SHA256 of raw body using WEBHOOK_SECRET"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [event_id, provider_ref, status]
+              properties:
+                event_id: { type: string }
+                provider_ref: { type: string }
+                status: { type: string, enum: [SUCCESS, FAILED] }
+      responses:
+        '200': { description: Processed or duplicate }
+        '401': { description: Invalid signature }
+
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { status: { type: string } } } } } }

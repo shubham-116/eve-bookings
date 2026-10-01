@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>EVE Healthcare – API Docs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"/>
+  <style>
+    body { margin:0; background:#080c14; font-family:'Inter',sans-serif; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 24px;
+              background:rgba(8,12,20,0.95); border-bottom:1px solid rgba(255,255,255,0.08);
+              position:sticky; top:0; z-index:50; backdrop-filter:blur(12px); }
+    .topbar-brand { display:flex; align-items:center; gap:10px; color:#f1f5f9; font-weight:700; font-size:1rem; text-decoration:none; }
+    .topbar-logo { width:30px; height:30px; border-radius:7px; background:linear-gradient(135deg,#6366f1,#8b5cf6); display:flex; align-items:center; justify-content:center; font-size:15px; }
+    .back-btn { color:#818cf8; text-decoration:none; font-size:0.88rem; border:1px solid rgba(99,102,241,0.3); padding:6px 14px; border-radius:7px; transition:all 0.2s; }
+    .back-btn:hover { background:rgba(99,102,241,0.1); }
+    #swagger-ui { max-width:1200px; margin:0 auto; padding:24px; }
+    .swagger-ui .topbar { display:none; }
+    .swagger-ui { color:#f1f5f9; }
+    .swagger-ui .info .title { color:#f1f5f9 !important; }
+    .swagger-ui .info p, .swagger-ui .info li { color:#94a3b8 !important; }
+    .swagger-ui .scheme-container { background:rgba(255,255,255,0.04) !important; border:1px solid rgba(255,255,255,0.08) !important; border-radius:10px; }
+    .swagger-ui .opblock-tag { color:#f1f5f9 !important; border-bottom:1px solid rgba(255,255,255,0.08) !important; }
+    .swagger-ui .opblock { border-radius:10px !important; margin-bottom:10px !important; }
+    .swagger-ui .opblock-summary-description { color:#94a3b8 !important; }
+    .swagger-ui .opblock-summary-path { color:#f1f5f9 !important; }
+    .swagger-ui .response-col_description { color:#94a3b8 !important; }
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a class="topbar-brand" href="/"><div class="topbar-logo">🩺</div>EVE Healthcare</a>
+  <a class="back-btn" href="/">← Back to App</a>
+</div>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+  SwaggerUIBundle({
+    url: '/static/openapi.yaml',
+    dom_id: '#swagger-ui',
+    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+    layout: 'BaseLayout',
+    deepLinking: true,
+    tryItOutEnabled: true,
+    persistAuthorization: true,
+  });
+</script>
+</body>
+</html>

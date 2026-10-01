@@ -1,0 +1,11 @@
+services:
+  api:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      SECRET_KEY: change-me
+      WEBHOOK_SECRET: change-me-too
+      ADMIN_EMAILS: admin@example.com
+    volumes: [db-data:/data]
+volumes:
+  db-data:

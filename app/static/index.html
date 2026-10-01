@@ -1,0 +1,562 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EVE Healthcare – Diagnostic Bookings</title>
+  <meta name="description" content="Book diagnostic tests at top centres near you."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#080c14;--bg2:#0d1322;--bg3:#111827;--surface:rgba(255,255,255,.04);--surface2:rgba(255,255,255,.07);--border:rgba(255,255,255,.08);--accent:#6366f1;--accent2:#818cf8;--accent3:#a5b4fc;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--glow:rgba(99,102,241,.25);--radius:14px;--radius-sm:8px}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+    .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.15;animation:drift 20s infinite alternate ease-in-out}
+    .orb-1{width:500px;height:500px;background:#6366f1;top:-150px;left:-100px}
+    .orb-2{width:400px;height:400px;background:#8b5cf6;bottom:-100px;right:-80px;animation-delay:-7s}
+    .orb-3{width:300px;height:300px;background:#06b6d4;top:40%;left:50%;transform:translate(-50%,-50%);animation-delay:-14s}
+    @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,40px) scale(1.1)}}
+    .app{position:relative;z-index:1}
+    .navbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:64px;background:rgba(8,12,20,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+    .nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;cursor:pointer}
+    .nav-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:16px}
+    .nav-links{display:flex;align-items:center;gap:4px}
+    .nav-btn{background:none;border:none;color:var(--text2);font-family:inherit;font-size:.9rem;padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s}
+    .nav-btn:hover{color:var(--text);background:var(--surface2)}.nav-btn.active{color:var(--accent3)}
+    .nav-btn.admin-btn{color:#fbbf24}.nav-btn.admin-btn.active{color:#fcd34d}
+    .nav-right{display:flex;align-items:center;gap:8px}
+    .nav-user{font-size:.85rem;color:var(--text2)}
+    .admin-badge{font-size:.65rem;padding:2px 7px;border-radius:10px;background:rgba(245,158,11,.2);color:#fcd34d;font-weight:700;margin-left:4px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-family:inherit;font-size:.9rem;font-weight:500;cursor:pointer;transition:all .2s;border:none;white-space:nowrap}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;box-shadow:0 4px 20px var(--glow)}.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 28px var(--glow)}
+    .btn-outline{background:var(--surface);border:1px solid var(--border);color:var(--text2)}.btn-outline:hover{background:var(--surface2);color:var(--text);border-color:var(--accent)}
+    .btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5}.btn-danger:hover{background:rgba(239,68,68,.25)}
+    .btn-success{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#6ee7b7}.btn-success:hover{background:rgba(16,185,129,.25)}
+    .btn-warning{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#fcd34d}.btn-warning:hover{background:rgba(245,158,11,.25)}
+    .btn-sm{padding:6px 12px;font-size:.8rem}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;backdrop-filter:blur(10px);transition:border-color .2s}.card:hover{border-color:rgba(99,102,241,.2)}
+    .form-group{display:flex;flex-direction:column;gap:6px}
+    .form-label{font-size:.78rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+    .form-input{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:inherit;font-size:.95rem;padding:10px 14px;transition:all .2s;outline:none;width:100%}
+    .form-input:focus{border-color:var(--accent);background:rgba(99,102,241,.08);box-shadow:0 0 0 3px var(--glow)}.form-input::placeholder{color:var(--text3)}
+    select.form-input option{background:var(--bg3)}
+    .page{display:none;padding:32px 2rem;max-width:1200px;margin:0 auto;animation:fadeUp .3s ease}.page.active{display:block}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+    .hero{text-align:center;padding:80px 20px 60px}
+    .hero-eyebrow{display:inline-block;font-size:.8rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent3);background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);padding:6px 16px;border-radius:20px;margin-bottom:24px}
+    .hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;line-height:1.15;margin-bottom:20px}
+    .hero h1 span{background:linear-gradient(135deg,var(--accent2),#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero p{font-size:1.1rem;color:var(--text2);max-width:500px;margin:0 auto 36px;line-height:1.7}
+    .hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .stats-row{display:flex;gap:14px;justify-content:center;margin-top:48px;flex-wrap:wrap}
+    .stat-pill{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);padding:12px 20px;border-radius:40px;font-size:.9rem}
+    .stat-pill .num{font-weight:700}.stat-pill .lbl{color:var(--text2)}
+    .section-title{font-size:1.4rem;font-weight:700;margin-bottom:4px}.section-sub{font-size:.9rem;color:var(--text2);margin-bottom:24px}
+    .grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+    .centre-name{font-size:1.05rem;font-weight:600;margin-bottom:4px}.centre-loc{font-size:.85rem;color:var(--text2);margin-bottom:14px}
+    .test-list{display:flex;flex-direction:column;gap:8px}
+    .test-item{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 14px}
+    .test-name{font-size:.88rem;font-weight:500}.test-price{font-size:.82rem;font-weight:700;color:var(--accent3);margin-top:2px}
+    .status{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em}
+    .status-PENDING{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3)}
+    .status-CONFIRMED{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+    .status-FAILED{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+    .status-CANCELLED{background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.3)}
+    .booking-card{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+    .booking-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .booking-title{font-weight:600;font-size:1rem}.booking-meta{font-size:.82rem;color:var(--text2);margin-top:3px}
+    .booking-amount{font-size:1.1rem;font-weight:700}.booking-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .auth-toggle{display:flex;background:var(--surface);border-radius:10px;padding:4px;margin-bottom:24px}
+    .auth-toggle-btn{flex:1;background:none;border:none;font-family:inherit;font-size:.9rem;padding:8px;border-radius:8px;cursor:pointer;color:var(--text2);transition:all .2s}
+    .auth-toggle-btn.active{background:var(--accent);color:#fff;font-weight:600}
+    .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px}
+    .modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:100%;max-width:520px;animation:scaleIn .25s ease;max-height:90vh;overflow-y:auto}
+    @keyframes scaleIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-title{font-size:1.2rem;font-weight:700;margin-bottom:20px}
+    .toasts{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+    .toast{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 18px;font-size:.88rem;max-width:340px;pointer-events:all;animation:toastIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+    .toast.success{border-color:rgba(16,185,129,.4)}.toast.error{border-color:rgba(239,68,68,.4)}
+    @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+    @keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+    .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty{text-align:center;padding:60px 20px;color:var(--text3)}.empty-icon{font-size:3rem;margin-bottom:12px}.empty-title{font-size:1.1rem;font-weight:600;color:var(--text2);margin-bottom:8px}
+    .search-wrap{position:relative;max-width:400px;margin-bottom:24px}.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}.search-input{padding-left:42px!important}
+    .admin-header{background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(251,191,36,.05));border:1px solid rgba(245,158,11,.2);border-radius:var(--radius);padding:20px 24px;margin-bottom:28px;display:flex;align-items:center;gap:16px}
+    .admin-icon{font-size:2rem}.admin-header h2{font-size:1.1rem;font-weight:700;color:#fcd34d}.admin-header p{font-size:.85rem;color:var(--text2);margin-top:2px}
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;transition:all .2s}
+    .stat-card:hover{border-color:rgba(99,102,241,.3);transform:translateY(-2px)}
+    .stat-card .s-num{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent2),#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .stat-card .s-lbl{font-size:.8rem;color:var(--text2);margin-top:4px}
+    .admin-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);border-radius:10px;padding:4px;width:fit-content}
+    .tab-btn{background:none;border:none;font-family:inherit;font-size:.88rem;padding:8px 16px;border-radius:8px;cursor:pointer;color:var(--text2);transition:all .2s;font-weight:500}
+    .tab-btn.active{background:var(--accent);color:#fff;font-weight:600}
+    .tab-content{display:none}.tab-content.active{display:block;animation:fadeUp .2s ease}
+    .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+    table{width:100%;border-collapse:collapse;font-size:.85rem}
+    thead tr{border-bottom:1px solid var(--border);background:var(--surface2)}
+    th{text-align:left;padding:10px 14px;color:var(--text2);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+    td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)}
+    tr:last-child td{border-bottom:none}tr:hover td{background:rgba(255,255,255,.02)}
+    .hint-box{font-size:.78rem;color:var(--text3);padding:8px 12px;background:rgba(245,158,11,.08);border-radius:6px;border:1px solid rgba(245,158,11,.2);margin-top:4px}
+    .swagger-link{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;text-decoration:none;transition:all .2s;color:var(--text);margin-bottom:24px}
+    .swagger-link:hover{border-color:var(--accent);background:var(--surface2);transform:translateY(-2px)}
+    .swagger-link h3{font-size:1rem;font-weight:600}.swagger-link p{font-size:.85rem;color:var(--text2);margin-top:2px}
+    @media(max-width:600px){.navbar{padding:0 1rem}.page{padding:24px 1rem}.hero{padding:48px 16px 40px}.stat-grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<div class="bg-orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+<div class="app">
+  <nav class="navbar">
+    <div class="nav-brand" onclick="showPage('home')"><div class="nav-logo">&#x1F9BA;</div>EVE Healthcare</div>
+    <div class="nav-links">
+      <button class="nav-btn active" id="navHome"     onclick="showPage('home')">Home</button>
+      <button class="nav-btn"        id="navCentres"  onclick="showPage('centres')">Centres</button>
+      <button class="nav-btn"        id="navBookings" onclick="showPage('bookings')">My Bookings</button>
+      <button class="nav-btn"        id="navDocs"     onclick="showPage('docs')">API Docs</button>
+      <button class="nav-btn admin-btn" id="navAdmin" onclick="showPage('admin')" style="display:none">&#x2699; Admin</button>
+    </div>
+    <div class="nav-right" id="navRight"></div>
+  </nav>
+
+  <!-- HOME -->
+  <div class="page active" id="pageHome">
+    <div class="hero">
+      <div class="hero-eyebrow">&#x2728; Trusted Diagnostic Network</div>
+      <h1>Book Your <span>Diagnostic Tests</span><br>with Confidence</h1>
+      <p>Access the best diagnostic centres near you. Transparent pricing, instant booking, secure payments.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="showPage('centres')">Browse Centres &rarr;</button>
+        <button class="btn btn-outline" onclick="showAuthModal('signup')">Create Account</button>
+      </div>
+      <div class="stats-row">
+        <div class="stat-pill"><span class="num" id="statCentres">5</span>&nbsp;<span class="lbl">Centres</span></div>
+        <div class="stat-pill"><span class="num" id="statTests">10</span>&nbsp;<span class="lbl">Tests</span></div>
+        <div class="stat-pill"><span class="num">80%</span>&nbsp;<span class="lbl">Payment Success Rate</span></div>
+        <div class="stat-pill"><span class="num">JWT</span>&nbsp;<span class="lbl">Secured Auth</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTRES -->
+  <div class="page" id="pageCentres">
+    <div class="section-title">Diagnostic Centres</div>
+    <div class="section-sub">5 centres across 4 cities &mdash; browse and book</div>
+    <div class="search-wrap">
+      <span class="search-icon">&#x1F50D;</span>
+      <input class="form-input search-input" id="centreSearch" placeholder="Filter by city or centre name&hellip;" oninput="renderCentres()"/>
+    </div>
+    <div id="centresGrid" class="grid-2"><div class="card" style="display:flex;justify-content:center"><div class="spinner"></div></div></div>
+  </div>
+
+  <!-- BOOKINGS -->
+  <div class="page" id="pageBookings">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+      <div><div class="section-title">My Bookings</div><div class="section-sub" style="margin-bottom:0">Track and manage your appointments</div></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select class="form-input" id="bookingFilter" onchange="loadBookings()" style="padding:7px 12px;font-size:.85rem">
+          <option value="">All Statuses</option><option value="PENDING">Pending</option>
+          <option value="CONFIRMED">Confirmed</option><option value="FAILED">Failed</option><option value="CANCELLED">Cancelled</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="loadBookings()">&#x21BA; Refresh</button>
+      </div>
+    </div>
+    <div id="bookingsList"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="page" id="pageAdmin">
+    <div class="admin-header">
+      <div class="admin-icon">&#x2699;&#xFE0F;</div>
+      <div><h2>Admin Control Panel</h2><p>Manage centres, tests, and monitor system activity</p></div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="s-num" id="as-centres">-</div><div class="s-lbl">Centres</div></div>
+      <div class="stat-card"><div class="s-num" id="as-tests">-</div><div class="s-lbl">Tests</div></div>
+      <div class="stat-card"><div class="s-num" id="as-users">-</div><div class="s-lbl">Users</div></div>
+      <div class="stat-card"><div class="s-num" id="as-bookings">-</div><div class="s-lbl">Bookings</div></div>
+      <div class="stat-card"><div class="s-num" id="as-revenue">-</div><div class="s-lbl">Revenue (Rs)</div></div>
+      <div class="stat-card"><div class="s-num" id="as-payments">-</div><div class="s-lbl">Payments</div></div>
+    </div>
+    <div class="admin-tabs">
+      <button class="tab-btn active" id="tabCentres"  onclick="showTab('Centres')">&#x1F3E5; Centres</button>
+      <button class="tab-btn"        id="tabTestsMgr" onclick="showTab('TestsMgr')">&#x1F9EA; Tests</button>
+      <button class="tab-btn"        id="tabActivity" onclick="showTab('Activity')">&#x1F4CB; Activity</button>
+    </div>
+    <!-- CENTRES TAB -->
+    <div class="tab-content active" id="tabContentCentres">
+      <div style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;align-items:flex-start">
+        <div class="card" style="flex:1;min-width:260px">
+          <div style="font-weight:600;font-size:.95rem;margin-bottom:14px">&#x2795; Add New Centre</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="form-group"><label class="form-label">Centre Name</label><input class="form-input" id="newCentreName" placeholder="e.g. City Health Labs"/></div>
+            <div class="form-group"><label class="form-label">Location / City</label><input class="form-input" id="newCentreLocation" placeholder="e.g. Hyderabad"/></div>
+            <button class="btn btn-warning" id="addCentreBtn" onclick="doAddCentre()">Add Centre</button>
+          </div>
+        </div>
+        <div class="card" style="flex:1;min-width:260px">
+          <div style="font-weight:600;font-size:.95rem;margin-bottom:14px">&#x1F9EA; Add / Update Test at Centre</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="form-group"><label class="form-label">Centre</label><select class="form-input" id="testAtCentre"><option value="">Select centre&hellip;</option></select></div>
+            <div class="form-group"><label class="form-label">Test Name</label><input class="form-input" id="newTestName" placeholder="e.g. Complete Blood Count"/></div>
+            <div class="form-group"><label class="form-label">Price in Paise (100 = Rs 1)</label><input class="form-input" id="newTestPrice" type="number" placeholder="e.g. 35000 = Rs 350"/></div>
+            <button class="btn btn-primary" id="addTestBtn" onclick="doAddTest()">Add / Update Test</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>ID</th><th>Centre Name</th><th>Location</th><th>Tests</th><th>Bookings</th></tr></thead>
+        <tbody id="centresTableBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></td></tr></tbody></table>
+      </div>
+    </div>
+    <!-- TESTS TAB -->
+    <div class="tab-content" id="tabContentTestsMgr">
+      <div class="table-wrap">
+        <table><thead><tr><th>ID</th><th>Test Name</th><th>Offered At Centres</th></tr></thead>
+        <tbody id="testsTableBody"><tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text3)">Loading&hellip;</td></tr></tbody></table>
+      </div>
+    </div>
+    <!-- ACTIVITY TAB -->
+    <div class="tab-content" id="tabContentActivity">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="loadAdminStats()">&#x21BA; Refresh</button></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>ID</th><th>User</th><th>Centre</th><th>Test</th><th>Status</th><th>Amount</th><th>Appointment</th></tr></thead>
+        <tbody id="activityTableBody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)"><div class="spinner" style="margin:auto"></div></td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOCS -->
+  <div class="page" id="pageDocs">
+    <div class="section-title">API Documentation</div>
+    <div class="section-sub">Interactive Swagger UI and endpoint reference</div>
+    <a href="/docs/swagger" target="_blank" class="swagger-link">
+      <span style="font-size:2.2rem">&#x1F4D6;</span>
+      <div><h3>Open Interactive Swagger UI &rarr;</h3><p>Try every endpoint directly in your browser</p></div>
+    </a>
+    <div class="card"><h3 style="font-size:1rem;font-weight:600;margin-bottom:16px">Endpoint Reference</h3><div id="endpointTable"></div></div>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div class="modal-overlay" id="authModal" onclick="closeModal('authModal',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="auth-toggle">
+      <button class="auth-toggle-btn active" id="toggleLogin"  onclick="switchAuth('login')">Log In</button>
+      <button class="auth-toggle-btn"        id="toggleSignup" onclick="switchAuth('signup')">Sign Up</button>
+    </div>
+    <div id="loginForm">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="loginEmail" type="email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="loginPassword" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        <div class="hint-box">&#x1F4A1; <strong style="color:#fcd34d">Admin hint:</strong> Sign up/login with <code style="color:#fcd34d">admin@example.com</code> to unlock the Admin panel</div>
+        <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Log In</button>
+      </div>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="signupName" type="text" placeholder="Asha Mehta"/></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="signupEmail" type="email" placeholder="you@example.com"/></div>
+        <div class="form-group"><label class="form-label">Password (min 8 chars)</label><input class="form-input" id="signupPassword" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" onkeydown="if(event.key==='Enter')doSignup()"/></div>
+        <div class="hint-box">&#x1F4A1; Use <code style="color:#fcd34d">admin@example.com</code> to register as admin</div>
+        <button class="btn btn-primary" id="signupBtn" onclick="doSignup()">Create Account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Book Modal -->
+<div class="modal-overlay" id="bookModal" onclick="closeModal('bookModal',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">&#x1F4C5; Book a Test</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group"><label class="form-label">Centre</label><input class="form-input" id="bookCentreName" readonly style="opacity:.6"/></div>
+      <div class="form-group"><label class="form-label">Test</label><input class="form-input" id="bookTestName" readonly style="opacity:.6"/></div>
+      <div class="form-group"><label class="form-label">Price</label><input class="form-input" id="bookPrice" readonly style="opacity:.6"/></div>
+      <div class="form-group"><label class="form-label">Appointment Date &amp; Time</label><input class="form-input" id="bookDate" type="datetime-local"/></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" style="flex:1" onclick="closeModal('bookModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" id="bookBtn" onclick="doBook()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+<script>
+const API='';
+let token=localStorage.getItem('eve_token');
+let userName=localStorage.getItem('eve_name');
+let isAdmin=localStorage.getItem('eve_admin')==='1';
+let centres=[];
+let pendingBook={};
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function paise(p){return 'Rs '+(p/100).toFixed(2)}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const key=name.charAt(0).toUpperCase()+name.slice(1);
+  document.getElementById('page'+key).classList.add('active');
+  document.getElementById('nav'+key).classList.add('active');
+  if(name==='centres') loadCentres();
+  if(name==='bookings'){if(!token){showAuthModal('login');toast('error','Please log in first');return;}loadBookings();}
+  if(name==='admin'){if(!token||!isAdmin){toast('error','Admin access required');showAuthModal('login');return;}loadAdminStats();}
+  if(name==='docs') renderDocs();
+}
+
+async function api(method,path,body,auth=false){
+  const h={'Content-Type':'application/json'};
+  if(auth&&token) h['Authorization']='Bearer '+token;
+  const r=await fetch(API+path,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d&&d.error?d.error.message:'HTTP '+r.status);
+  return d;
+}
+
+function updateNavAuth(){
+  const right=document.getElementById('navRight');
+  const adminBtn=document.getElementById('navAdmin');
+  if(token){
+    const adminTag=isAdmin?'<span class="admin-badge">ADMIN</span>':'';
+    right.innerHTML='<span class="nav-user">'+esc(userName||'User')+adminTag+'</span><button class="btn btn-outline btn-sm" onclick="logout()">Log Out</button>';
+    if(adminBtn) adminBtn.style.display=isAdmin?'':'none';
+  } else {
+    right.innerHTML='<button class="btn btn-outline btn-sm" onclick="showAuthModal(\'login\')">Log In</button><button class="btn btn-primary btn-sm" onclick="showAuthModal(\'signup\')">Sign Up</button>';
+    if(adminBtn) adminBtn.style.display='none';
+  }
+}
+
+function showAuthModal(mode){document.getElementById('authModal').classList.add('open');switchAuth(mode);}
+function switchAuth(mode){
+  const isL=mode==='login';
+  document.getElementById('loginForm').style.display=isL?'':'none';
+  document.getElementById('signupForm').style.display=isL?'none':'';
+  document.getElementById('toggleLogin').classList.toggle('active',isL);
+  document.getElementById('toggleSignup').classList.toggle('active',!isL);
+}
+async function checkAdmin(){try{await api('GET','/admin/stats',null,true);return true;}catch(e){return false;}}
+
+async function doLogin(){
+  const btn=document.getElementById('loginBtn');
+  btn.innerHTML='<div class="spinner"></div>';btn.disabled=true;
+  try{
+    const email=document.getElementById('loginEmail').value.trim();
+    const d=await api('POST','/auth/login',{email,password:document.getElementById('loginPassword').value});
+    token=d.access_token;userName=email.split('@')[0];
+    localStorage.setItem('eve_token',token);localStorage.setItem('eve_name',userName);
+    isAdmin=await checkAdmin();localStorage.setItem('eve_admin',isAdmin?'1':'0');
+    closeModal('authModal');updateNavAuth();
+    toast('success',isAdmin?'Logged in as Admin!':'Logged in successfully!');
+  }catch(e){toast('error',e.message);}
+  finally{btn.innerHTML='Log In';btn.disabled=false;}
+}
+
+async function doSignup(){
+  const btn=document.getElementById('signupBtn');
+  btn.innerHTML='<div class="spinner"></div>';btn.disabled=true;
+  try{
+    const name=document.getElementById('signupName').value.trim();
+    const email=document.getElementById('signupEmail').value.trim();
+    const password=document.getElementById('signupPassword').value;
+    await api('POST','/auth/signup',{name,email,password});
+    const d=await api('POST','/auth/login',{email,password});
+    token=d.access_token;userName=name;
+    localStorage.setItem('eve_token',token);localStorage.setItem('eve_name',name);
+    isAdmin=await checkAdmin();localStorage.setItem('eve_admin',isAdmin?'1':'0');
+    closeModal('authModal');updateNavAuth();
+    toast('success','Welcome, '+name+(isAdmin?' (Admin)':'')+'!');
+  }catch(e){toast('error',e.message);}
+  finally{btn.innerHTML='Create Account';btn.disabled=false;}
+}
+
+function logout(){
+  token=null;userName=null;isAdmin=false;
+  localStorage.removeItem('eve_token');localStorage.removeItem('eve_name');localStorage.removeItem('eve_admin');
+  updateNavAuth();showPage('home');toast('success','Logged out');
+}
+
+async function loadCentres(){
+  try{
+    const data=await api('GET','/centres');
+    centres=data.items||[];renderCentres();
+    const ids=new Set();centres.forEach(c=>c.tests.forEach(t=>ids.add(t.id)));
+    const ec=document.getElementById('statCentres');const et=document.getElementById('statTests');
+    if(ec) ec.textContent=centres.length;if(et) et.textContent=ids.size;
+  }catch(e){toast('error','Failed to load centres: '+e.message);}
+}
+
+function renderCentres(){
+  const q=(document.getElementById('centreSearch')&&document.getElementById('centreSearch').value||'').toLowerCase();
+  const filtered=centres.filter(c=>c.name.toLowerCase().includes(q)||c.location.toLowerCase().includes(q));
+  const grid=document.getElementById('centresGrid');
+  if(!filtered.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">&#x1F50D;</div><div class="empty-title">No centres found</div></div>';return;}
+  grid.innerHTML=filtered.map(c=>'<div class="card"><div class="centre-name">'+esc(c.name)+'</div><div class="centre-loc">&#x1F4CD; '+esc(c.location)+' &nbsp;&bull;&nbsp; '+c.tests.length+' tests</div><div class="test-list">'+c.tests.map(t=>'<div class="test-item"><div><div class="test-name">'+esc(t.name)+'</div><div class="test-price">'+paise(t.price)+'</div></div><button class="btn btn-primary btn-sm" onclick="openBookModal('+c.id+',\''+esc(c.name)+'\','+t.id+',\''+esc(t.name)+'\','+t.price+')">Book</button></div>').join('')+'</div></div>').join('');
+}
+
+function openBookModal(cId,cName,tId,tName,price){
+  if(!token){showAuthModal('login');toast('error','Log in to book a test');return;}
+  pendingBook={centre_id:cId,test_id:tId};
+  document.getElementById('bookCentreName').value=cName;
+  document.getElementById('bookTestName').value=tName;
+  document.getElementById('bookPrice').value=paise(price);
+  var tom=new Date();tom.setDate(tom.getDate()+1);tom.setHours(10,0,0,0);
+  document.getElementById('bookDate').value=tom.toISOString().slice(0,16);
+  document.getElementById('bookModal').classList.add('open');
+}
+
+async function doBook(){
+  const btn=document.getElementById('bookBtn');
+  btn.innerHTML='<div class="spinner"></div>';btn.disabled=true;
+  try{
+    const dt=document.getElementById('bookDate').value;
+    if(!dt) throw new Error('Please pick an appointment date');
+    await api('POST','/bookings',Object.assign({},pendingBook,{appointment_at:new Date(dt).toISOString()}),true);
+    closeModal('bookModal');toast('success','Booked! Pay to confirm your slot.');showPage('bookings');
+  }catch(e){toast('error',e.message);}
+  finally{btn.innerHTML='Confirm Booking';btn.disabled=false;}
+}
+
+async function loadBookings(){
+  const status=document.getElementById('bookingFilter')&&document.getElementById('bookingFilter').value||'';
+  const list=document.getElementById('bookingsList');
+  list.innerHTML='<div class="card" style="display:flex;justify-content:center"><div class="spinner"></div></div>';
+  try{
+    const data=await api('GET','/bookings'+(status?'?status='+status:''),null,true);
+    const items=data.items||[];
+    const cMap={};centres.forEach(function(c){cMap[c.id]=c;});
+    if(!items.length){list.innerHTML='<div class="empty"><div class="empty-icon">&#x1F4CB;</div><div class="empty-title">No bookings yet</div><p>Browse centres to book your first test!</p><br/><button class="btn btn-primary" onclick="showPage(\'centres\')">Browse Centres</button></div>';return;}
+    list.innerHTML=items.map(function(b){
+      var c=cMap[b.centre_id];
+      var cName=c?c.name:'Centre #'+b.centre_id;
+      var tName=c&&c.tests?c.tests.filter(function(t){return t.id===b.test_id;})[0]:null;
+      tName=tName?tName.name:'Test #'+b.test_id;
+      var appt=new Date(b.appointment_at).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+      var acts=[];
+      if(b.status==='PENDING'||b.status==='FAILED') acts.push('<button class="btn btn-success btn-sm" onclick="doPay('+b.id+')">Pay Now</button>');
+      if(b.status!=='CANCELLED') acts.push('<button class="btn btn-danger btn-sm" onclick="doCancel('+b.id+')">Cancel</button>');
+      return '<div class="card booking-card" id="booking-'+b.id+'"><div class="booking-header"><div><div class="booking-title">'+esc(tName)+'</div><div class="booking-meta">&#x1F4CD; '+esc(cName)+' &nbsp;&bull;&nbsp; &#x1F4C5; '+appt+'</div></div><div style="text-align:right;flex-shrink:0"><span class="status status-'+b.status+'">'+b.status+'</span><div class="booking-amount" style="margin-top:6px">'+paise(b.amount)+'</div></div></div>'+(acts.length?'<div class="booking-actions">'+acts.join('')+'</div>':'')+'</div>';
+    }).join('');
+  }catch(e){list.innerHTML='<div class="empty"><div class="empty-icon">&#x26A0;&#xFE0F;</div><div class="empty-title">'+esc(e.message)+'</div></div>';}
+}
+
+async function doPay(id){
+  var btn=document.querySelector('#booking-'+id+' .btn-success');
+  if(btn){btn.innerHTML='<div class="spinner"></div>';btn.disabled=true;}
+  try{var d=await api('POST','/payments/',{booking_id:id},true);toast(d.status==='SUCCESS'?'success':'error',d.status==='SUCCESS'?'Payment successful! Booking confirmed.':'Payment failed. You may retry.');loadBookings();}
+  catch(e){toast('error',e.message);loadBookings();}
+}
+
+async function doCancel(id){
+  if(!confirm('Cancel this booking?')) return;
+  try{await api('POST','/bookings/'+id+'/cancel',null,true);toast('success','Booking cancelled.');loadBookings();}
+  catch(e){toast('error',e.message);}
+}
+
+async function loadAdminStats(){
+  try{
+    var d=await api('GET','/admin/stats',null,true);
+    document.getElementById('as-centres').textContent=d.centres;
+    document.getElementById('as-tests').textContent=d.tests;
+    document.getElementById('as-users').textContent=d.users;
+    document.getElementById('as-bookings').textContent=d.bookings;
+    document.getElementById('as-payments').textContent=d.payments;
+    document.getElementById('as-revenue').textContent=Math.round(d.total_revenue_paise/100);
+    renderCentresTable(d.centres_list||[]);
+    renderTestsTable(d.tests_list||[]);
+    renderActivity(d.recent_bookings||[]);
+    var sel=document.getElementById('testAtCentre');
+    sel.innerHTML='<option value="">Select centre&hellip;</option>'+(d.centres_list||[]).map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+' - '+esc(c.location)+'</option>';}).join('');
+  }catch(e){toast('error','Admin stats: '+e.message);}
+}
+
+function renderCentresTable(list){
+  document.getElementById('centresTableBody').innerHTML=list.length?list.map(function(c){return '<tr><td>'+c.id+'</td><td style="font-weight:500">'+esc(c.name)+'</td><td>'+esc(c.location)+'</td><td>'+c.test_count+'</td><td>'+c.booking_count+'</td></tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--text3)">No centres</td></tr>';
+}
+function renderTestsTable(list){
+  document.getElementById('testsTableBody').innerHTML=list.length?list.map(function(t){return '<tr><td>'+t.id+'</td><td style="font-weight:500">'+esc(t.name)+'</td><td><span style="color:var(--accent3);font-weight:600">'+t.offered_at+'</span> centre(s)</td></tr>';}).join(''):'<tr><td colspan="3" style="text-align:center;color:var(--text3)">No tests</td></tr>';
+}
+function renderActivity(list){
+  var sc={PENDING:'status-PENDING',CONFIRMED:'status-CONFIRMED',FAILED:'status-FAILED',CANCELLED:'status-CANCELLED'};
+  document.getElementById('activityTableBody').innerHTML=list.length?list.map(function(b){return '<tr><td>#'+b.id+'</td><td>'+esc(b.user_name)+'</td><td style="font-size:.8rem">'+esc(b.centre_name)+'</td><td style="font-size:.8rem">'+esc(b.test_name)+'</td><td><span class="status '+(sc[b.status]||'')+'">'+b.status+'</span></td><td style="font-weight:600">'+paise(b.amount)+'</td><td style="font-size:.78rem;color:var(--text2)">'+new Date(b.appointment_at).toLocaleDateString('en-IN')+'</td></tr>';}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--text3)">No activity yet</td></tr>';
+}
+
+async function doAddCentre(){
+  var btn=document.getElementById('addCentreBtn');btn.innerHTML='<div class="spinner"></div>';btn.disabled=true;
+  try{
+    var name=document.getElementById('newCentreName').value.trim();
+    var location=document.getElementById('newCentreLocation').value.trim();
+    if(!name||!location) throw new Error('Both name and location are required');
+    await api('POST','/centres',{name,location},true);
+    document.getElementById('newCentreName').value='';document.getElementById('newCentreLocation').value='';
+    toast('success','Centre "'+name+'" added!');loadAdminStats();loadCentres();
+  }catch(e){toast('error',e.message);}
+  finally{btn.innerHTML='Add Centre';btn.disabled=false;}
+}
+
+async function doAddTest(){
+  var btn=document.getElementById('addTestBtn');btn.innerHTML='<div class="spinner"></div>';btn.disabled=true;
+  try{
+    var centreId=document.getElementById('testAtCentre').value;
+    var name=document.getElementById('newTestName').value.trim();
+    var price=parseInt(document.getElementById('newTestPrice').value);
+    if(!centreId) throw new Error('Select a centre');
+    if(!name) throw new Error('Enter a test name');
+    if(!price||price<=0) throw new Error('Enter a valid price in paise (e.g. 35000 = Rs 350)');
+    await api('POST','/centres/'+centreId+'/tests',{name,price},true);
+    document.getElementById('newTestName').value='';document.getElementById('newTestPrice').value='';
+    toast('success','Test "'+name+'" added at '+paise(price));loadAdminStats();loadCentres();
+  }catch(e){toast('error',e.message);}
+  finally{btn.innerHTML='Add / Update Test';btn.disabled=false;}
+}
+
+function showTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('tab'+tab).classList.add('active');
+  document.getElementById('tabContent'+tab).classList.add('active');
+}
+
+function renderDocs(){
+  var eps=[
+    {m:'POST',p:'/auth/signup',a:'-',d:'Register {name, email, password}'},
+    {m:'POST',p:'/auth/login',a:'-',d:'Login - returns JWT access_token'},
+    {m:'GET', p:'/centres',a:'-',d:'List all centres with tests and prices'},
+    {m:'GET', p:'/centres/:id',a:'-',d:'Single centre detail'},
+    {m:'POST',p:'/centres',a:'admin',d:'Create a centre {name, location}'},
+    {m:'POST',p:'/centres/:id/tests',a:'admin',d:'Add/update test at centre {name, price}'},
+    {m:'DELETE',p:'/centres/:id/tests/:tid',a:'admin',d:'Remove a test from a centre'},
+    {m:'GET', p:'/admin/stats',a:'admin',d:'System-wide stats dashboard'},
+    {m:'POST',p:'/bookings',a:'user',d:'Create booking - PENDING'},
+    {m:'GET', p:'/bookings',a:'user',d:'My bookings (paginated)'},
+    {m:'GET', p:'/bookings/:id',a:'user',d:'Booking + payment history'},
+    {m:'POST',p:'/bookings/:id/cancel',a:'user',d:'Cancel booking'},
+    {m:'POST',p:'/payments/',a:'user',d:'Simulate payment {booking_id, simulate?}'},
+    {m:'POST',p:'/payments/webhook',a:'HMAC',d:'Provider webhook (idempotent)'},
+    {m:'GET', p:'/health',a:'-',d:'Health check'},
+  ];
+  var mc={GET:'#10b981',POST:'#6366f1',DELETE:'#ef4444'};
+  var ab={admin:'background:rgba(245,158,11,.15);color:#fcd34d',user:'background:rgba(99,102,241,.15);color:#a5b4fc',HMAC:'background:rgba(239,68,68,.1);color:#fca5a5','-':'background:rgba(100,116,139,.15);color:#64748b'};
+  document.getElementById('endpointTable').innerHTML='<div class="table-wrap"><table><thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead><tbody>'+eps.map(function(e){return '<tr><td><span style="font-weight:700;color:'+(mc[e.m]||'#94a3b8')+';font-family:monospace">'+e.m+'</span></td><td style="font-family:monospace">'+e.p+'</td><td><span style="font-size:.72rem;padding:3px 8px;border-radius:12px;font-weight:600;'+(ab[e.a]||'')+'">'+e.a+'</span></td><td style="color:var(--text2)">'+e.d+'</td></tr>';}).join('')+'</tbody></table></div>';
+}
+
+function closeModal(id,e){if(!e||e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');}
+
+function toast(type,msg){
+  var t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(function(){t.style.animation='toastOut .3s ease forwards';setTimeout(function(){t.remove();},300);},3500);
+}
+
+updateNavAuth();
+loadCentres();
+</script>
+</body>
+</html>
